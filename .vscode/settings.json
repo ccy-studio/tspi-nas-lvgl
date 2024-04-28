@@ -1,0 +1,8 @@
+{
+	"files.associations": {
+		"lvgl.h": "c",
+		"lv_demos.h": "c",
+		"time.h": "c",
+		"unistd.h": "c"
+	}
+}

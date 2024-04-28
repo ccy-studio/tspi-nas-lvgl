@@ -93,8 +93,10 @@ static lv_point_t _evdev_process_pointer(lv_indev_t * indev, int x, int y)
     lv_evdev_t * dsc = lv_indev_get_driver_data(indev);
     LV_ASSERT_NULL(dsc);
 
-    int swapped_x = dsc->swap_axes ? y : x;
+    // int swapped_x = dsc->swap_axes ? y : x;
+    int swapped_x = dsc->swap_axes ? -(y-dsc->max_x) : x;  //修改X的翻转对调
     int swapped_y = dsc->swap_axes ? x : y;
+
 
     int offset_x = lv_display_get_offset_x(disp);
     int offset_y = lv_display_get_offset_y(disp);

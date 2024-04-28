@@ -93,8 +93,6 @@ lv_display_t * lv_linux_fbdev_create(int32_t hor_res, int32_t ver_res)
 {
     static bool inited = false;
     if(!inited) {
-        //LVGL 需要一个系统滴答时钟来了解动画和其他任务所用的时间
-        //https://lvgl.100ask.net/9.1/porting/tick.html#api
         lv_tick_set_cb(tick_get_cb);
         inited = true;
     }
@@ -110,8 +108,6 @@ lv_display_t * lv_linux_fbdev_create(int32_t hor_res, int32_t ver_res)
     }
     dsc->fbfd = -1;
     lv_display_set_driver_data(disp, dsc);
-    //设置显示刷新-渲染准备就绪后，将发送绘制缓冲区的内容使用 flush_cb 功能显示
-    //https://lvgl.100ask.net/9.1/porting/display.html
     lv_display_set_flush_cb(disp, flush_cb);
 
     return disp;
@@ -292,13 +288,10 @@ static void flush_cb(lv_display_t * disp, const lv_area_t * area, uint8_t * colo
             perror("Error setting var screen info");
         }
     }
-    //标记已准备好可以执行下一次刷新了
+
     lv_display_flush_ready(disp);
 }
 
-/**
- * 提供一个时钟节拍
-*/
 static uint32_t tick_get_cb(void)
 {
     struct timeval tv_now;
