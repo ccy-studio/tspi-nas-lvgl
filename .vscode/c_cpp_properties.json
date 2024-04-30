@@ -7,7 +7,8 @@
                 "${workspaceFolder}/lvgl/**",
                 "${workspaceFolder}/app/**",
                 "${workspaceFolder}/store/**",
-                "${workspaceFolder}/uikit/**"
+                "${workspaceFolder}/uikit/**",
+                "${workspaceFolder}/monitor_ser/**"
             ],
             "defines": [],
             "cStandard": "c99",
