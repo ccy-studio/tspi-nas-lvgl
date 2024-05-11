@@ -800,6 +800,18 @@
     <ClInclude Include="uikit\util.h">
       <Filter>uikit</Filter>
     </ClInclude>
+    <ClInclude Include="monitor\cpu_monitor.h">
+      <Filter>monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="monitor\disk_monitor.h">
+      <Filter>monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="monitor\memory_monitor.h">
+      <Filter>monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="monitor\net_monitor.h">
+      <Filter>monitor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="LvglWindowsSimulator.manifest" />
@@ -1774,6 +1786,63 @@
     </ClCompile>
     <ClCompile Include="app\page_lunch.c">
       <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="app\monitor_page_style1.c">
+      <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="font\douyin_12.c">
+      <Filter>font</Filter>
+    </ClCompile>
+    <ClCompile Include="font\douyin_10.c">
+      <Filter>font</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_cpu.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_disk.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_logo_txt.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_net_dn.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_net_up.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_start_lunch.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_zd.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="image\gif_cat.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="app\date_time_page_style1.c">
+      <Filter>app</Filter>
+    </ClCompile>
+    <ClCompile Include="image\img_datetime.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="font\font_dignum.c">
+      <Filter>font</Filter>
+    </ClCompile>
+    <ClCompile Include="image\gif_radiantboy.c">
+      <Filter>image</Filter>
+    </ClCompile>
+    <ClCompile Include="monitor\cpu_monitor.c">
+      <Filter>monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="monitor\disk_monitor.c">
+      <Filter>monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="monitor\memory_monitor.c">
+      <Filter>monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="monitor\net_monitor.c">
+      <Filter>monitor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -5004,6 +5073,15 @@
     </Filter>
     <Filter Include="store">
       <UniqueIdentifier>{460c1339-ea8e-44dc-b914-111b32c4bfa1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="font">
+      <UniqueIdentifier>{fbc6889b-9f3f-4aaf-aa8f-4d9fb0f506b4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="image">
+      <UniqueIdentifier>{d31a474a-9c9f-4386-ba84-e74286a9f0dd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="monitor">
+      <UniqueIdentifier>{0cc9764d-7a8e-4f4a-8620-08886fdd18a4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

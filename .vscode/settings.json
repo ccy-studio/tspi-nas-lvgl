@@ -4,6 +4,7 @@
 		"lv_demos.h": "c",
 		"time.h": "c",
 		"unistd.h": "c",
-		"cpu_monitor.h": "c"
+		"cpu_monitor.h": "c",
+		"stdlib.h": "c"
 	}
 }

@@ -110,7 +110,7 @@
  * and can't be drawn in chunks. */
 
  /*The target buffer size for simple layer chunks.*/
-#define LV_DRAW_SW_LAYER_SIMPLE_BUF_SIZE    (24 * 1024)   /*[bytes]*/
+#define LV_DRAW_SW_LAYER_SIMPLE_BUF_SIZE    (50 * 1024)   /*[bytes]*/
 
 /* 0: use a simple renderer capable of drawing only simple rectangles with gradient, images, texts, and straight lines only
  * 1: use a complex renderer capable of drawing rounded corners, shadow, skew lines, and arcs too */
@@ -363,7 +363,7 @@
 
  /*Montserrat fonts with ASCII range and some symbols using bpp = 4
   *https://fonts.google.com/specimen/Montserrat*/
-#define LV_FONT_MONTSERRAT_8  0
+#define LV_FONT_MONTSERRAT_8  1
 #define LV_FONT_MONTSERRAT_10 0
 #define LV_FONT_MONTSERRAT_12 0
 #define LV_FONT_MONTSERRAT_14 1
@@ -400,7 +400,7 @@
 #define LV_FONT_CUSTOM_DECLARE
 
  /*Always set a default font*/
-#define LV_FONT_DEFAULT &lv_font_montserrat_14
+#define LV_FONT_DEFAULT &lv_font_montserrat_8
 
 /*Enable handling large font and/or fonts with a lot of characters.
  *The limit depends on the font size, font face and bpp.
@@ -607,11 +607,11 @@
 #endif
 
 /*API for CreateFile, ReadFile, etc*/
-#define LV_USE_FS_WIN32 1
+#define LV_USE_FS_WIN32 0
 #if LV_USE_FS_WIN32
-#define LV_FS_WIN32_LETTER '\0'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
-#define LV_FS_WIN32_PATH ""         /*Set the working directory. File/directory paths will be appended to it.*/
-#define LV_FS_WIN32_CACHE_SIZE 0    /*>0 to cache this number of bytes in lv_fs_read()*/
+#define LV_FS_WIN32_LETTER 'S'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
+#define LV_FS_WIN32_PATH "D:/Embedded/tspi-nas-lvgl/assess"         /*Set the working directory. File/directory paths will be appended to it.*/
+#define LV_FS_WIN32_CACHE_SIZE 4096    /*>0 to cache this number of bytes in lv_fs_read()*/
 #endif
 
 /*API for FATFS (needs to be added separately). Uses f_open, f_read, etc*/
@@ -645,10 +645,10 @@
 #define LV_USE_LIBJPEG_TURBO 0
 
   /*GIF decoder library*/
-#define LV_USE_GIF 0
+#define LV_USE_GIF 1
 #if LV_USE_GIF
 /*GIF decoder accelerate*/
-#define LV_GIF_CACHE_DECODE_DATA 0
+#define LV_GIF_CACHE_DECODE_DATA 1
 #endif
 
 

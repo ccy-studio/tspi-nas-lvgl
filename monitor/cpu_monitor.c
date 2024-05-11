@@ -1,4 +1,6 @@
 #include "cpu_monitor.h"
+#include <unistd.h>
+
 
 typedef struct cpu_occupy_  // 定义一个cpu occupy的结构体
 {

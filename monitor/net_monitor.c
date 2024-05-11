@@ -1,4 +1,6 @@
 #include "net_monitor.h"
+#include <unistd.h>
+
 
 static void get_net_speed(unsigned long long* rx_bytes,
                           unsigned long long* tx_bytes,

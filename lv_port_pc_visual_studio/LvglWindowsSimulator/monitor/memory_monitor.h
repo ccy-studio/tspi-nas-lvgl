@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -6,7 +6,6 @@ extern "C" {
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 
 typedef struct {
     unsigned long long memory_use_count;   // 内存使用量

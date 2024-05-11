@@ -1,5 +1,7 @@
 #include "memory_monitor.h"
 #include <string.h>
+#include <unistd.h>
+
 
 #define MEMINFO_FILE "/proc/meminfo"
 #define BUF_SIZE 256
