@@ -16,13 +16,14 @@ static lv_obj_t * label_disk_mount;       // 硬盘-挂载名称
 static lv_obj_t * label_disk_space_use;   // 硬盘-已用
 static lv_obj_t * label_disk_space_total; // 硬盘-总量
 
-static lv_obj_t * scale; // 温度图形控件
-
 static lv_obj_t * arc_cpu; // 百分比环-CPU
 static lv_obj_t * arc_mem; // 百分比环-MEM
 
-static lv_scale_section_t * scale_section; // 温度组件
-static lv_obj_t * bar_disk;                // 硬盘-Bar进度条控件
+static lv_obj_t * scale;      // 温度图形控件
+static lv_obj_t * scale_line; // 温度组件
+// static lv_scale_section_t * scale_section; // 温度组件
+
+static lv_obj_t * bar_disk; // 硬盘-Bar进度条控件
 
 lv_timer_t * sys_timer;
 
@@ -36,6 +37,8 @@ LV_IMG_DECLARE(img_zd)
 LV_IMG_DECLARE(gif_cat)
 
 extern void init_date_time(lv_obj_t * root);
+
+static void update_arc_val(lv_obj_t * arc, int32_t val);
 
 /**
  * @brief 刷新系统监控指标
@@ -59,7 +62,10 @@ void timer_refresh_system_monitor(lv_timer_t * timer)
     }
 
     get_sys_disk_usage(&disk, SYS_MONITOR_DISK_NAME);
-    lv_label_set_text_fmt(label_disk_space_use, "使用：%s 剩余: %s", disk.used, disk.avail);
+    get_sys_memory_usage(&mem);
+    get_sys_current_net_speed(&net);
+
+    lv_label_set_text_fmt(label_disk_space_use, "使用: %s 剩余:%s", disk.used, disk.avail);
     lv_label_set_text_fmt(label_disk_space_total, "总量: %s", disk.size);
 
     int val;
@@ -71,8 +77,18 @@ void timer_refresh_system_monitor(lv_timer_t * timer)
     val = atoi(disk.use_percent);
     lv_bar_set_value(bar_disk, val, LV_ANIM_ON);
 
-    lv_label_set_text_fmt(label_cpu_temp, "CPU:%.2fC", get_sys_cpu_temp());
-    
+    double cpu_temp = get_sys_cpu_temp();
+    lv_label_set_text_fmt(label_cpu_temp, "CPU:%.1fC", cpu_temp);
+    // lv_scale_section_set_range(scale_section, 0, cpu_temp); // 设置温度值
+    lv_scale_set_line_needle_value(scale, scale_line, 60, cpu_temp);
+
+    update_arc_val(arc_cpu, (int32_t)get_sys_cpu_usage());
+    update_arc_val(arc_mem, (int32_t)mem.memory_use_percent);
+    lv_label_set_text_fmt(label_mem_desc, "%s/%s", format_sys_mem_str(mem.memory_use_count),
+                          format_sys_mem_str(mem.memory_size));
+
+    lv_label_set_text_fmt(label_net_up, "%.2fKb/s", net.tx_speed);
+    lv_label_set_text_fmt(label_net_dn, "%.2fKb/s", net.rx_speed);
 }
 
 /**
@@ -98,7 +114,7 @@ static void init_disk_bar(void)
 static void init_scale(void)
 {
     scale = lv_scale_create(container);
-    lv_obj_set_size(scale, 40, 100);
+    lv_obj_set_size(scale, 34, 100);
     lv_scale_set_label_show(scale, true);
     lv_scale_set_mode(scale, LV_SCALE_MODE_VERTICAL_RIGHT);
     lv_obj_set_pos(scale, 14, 90);
@@ -110,7 +126,7 @@ static void init_scale(void)
     lv_obj_set_style_length(scale, 5, LV_PART_ITEMS);
     lv_scale_set_range(scale, 0, 100);
 
-    static const char * custom_labels[] = {"0 °C", "25 °C", "50 °C", "75 °C", "100 °C", NULL};
+    static const char * custom_labels[] = {"0", "25", "50", "75", "100", NULL};
     lv_scale_set_text_src(scale, custom_labels);
 
     static lv_style_t indicator_style;
@@ -140,43 +156,48 @@ static void init_scale(void)
     lv_style_set_line_width(&main_line_style, 1U); // Tick width
     lv_obj_add_style(scale, &main_line_style, LV_PART_MAIN);
 
-    /* Add a section */
-    static lv_style_t section_minor_tick_style;
-    static lv_style_t section_label_style;
-    static lv_style_t section_main_line_style;
+    scale_line = lv_line_create(scale);
 
-    lv_style_init(&section_label_style);
-    lv_style_init(&section_minor_tick_style);
-    lv_style_init(&section_main_line_style);
+    lv_obj_set_style_line_width(scale_line, 6, LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(scale_line, 255, 0);
+    lv_obj_set_style_bg_color(scale_line, lv_palette_darken(LV_PALETTE_GREEN, 3),0);
+    //lv_obj_set_style_line_rounded(scale_line, true, LV_PART_MAIN);
 
-    /* Label style properties */
-    lv_style_set_text_font(&section_label_style, &lv_font_montserrat_8);
-    lv_style_set_text_color(&section_label_style, lv_palette_darken(LV_PALETTE_RED, 3));
+    //
+    // /* Add a section */
+    // static lv_style_t section_minor_tick_style;
+    // static lv_style_t section_label_style;
+    // static lv_style_t section_main_line_style;
 
-    lv_style_set_line_color(&section_label_style, lv_palette_darken(LV_PALETTE_RED, 3));
-    lv_style_set_line_width(&section_label_style, 2U); /*Tick width*/
+    // lv_style_init(&section_label_style);
+    // lv_style_init(&section_minor_tick_style);
+    // lv_style_init(&section_main_line_style);
 
-    lv_style_set_line_color(&section_minor_tick_style, lv_palette_lighten(LV_PALETTE_RED, 2));
-    lv_style_set_line_width(&section_minor_tick_style, 1U); /*Tick width*/
+    ///* Label style properties */
+    // lv_style_set_text_font(&section_label_style, &lv_font_montserrat_8);
+    // lv_style_set_text_color(&section_label_style, lv_palette_darken(LV_PALETTE_RED, 3));
 
-    /* Main line properties */
-    lv_style_set_line_color(&section_main_line_style, lv_palette_darken(LV_PALETTE_RED, 3));
-    lv_style_set_line_width(&section_main_line_style, 1U); /*Tick width*/
+    // lv_style_set_line_color(&section_label_style, lv_palette_darken(LV_PALETTE_RED, 3));
+    // lv_style_set_line_width(&section_label_style, 2U); /*Tick width*/
 
-    /* Configure section styles */
-    scale_section = lv_scale_add_section(scale);
-    // lv_scale_section_set_range(section, 75, 100);
-    lv_scale_section_set_style(scale_section, LV_PART_INDICATOR, &section_label_style);
-    lv_scale_section_set_style(scale_section, LV_PART_ITEMS, &section_minor_tick_style);
-    lv_scale_section_set_style(scale_section, LV_PART_MAIN, &section_main_line_style);
+    // lv_style_set_line_color(&section_minor_tick_style, lv_palette_lighten(LV_PALETTE_RED, 2));
+    // lv_style_set_line_width(&section_minor_tick_style, 1U); /*Tick width*/
 
-    lv_obj_set_style_bg_color(scale, lv_color_white(), 0);
-    lv_obj_set_style_bg_opa(scale, LV_OPA_100, 0);
-    lv_obj_set_style_pad_left(scale, 8, 0);
-    lv_obj_set_style_radius(scale, 5, 0);
-    lv_obj_set_style_pad_ver(scale, 10, 0);
+    ///* Main line properties */
+    // lv_style_set_line_color(&section_main_line_style, lv_palette_darken(LV_PALETTE_RED, 3));
+    // lv_style_set_line_width(&section_main_line_style, 1U); /*Tick width*/
 
-    lv_scale_section_set_range(scale_section, 0, 80); // 设置值
+    ///* Configure section styles */
+    // scale_section = lv_scale_add_section(scale);
+    // lv_scale_section_set_style(scale_section, LV_PART_INDICATOR, &section_label_style);
+    // lv_scale_section_set_style(scale_section, LV_PART_ITEMS, &section_minor_tick_style);
+    // lv_scale_section_set_style(scale_section, LV_PART_MAIN, &section_main_line_style);
+
+     lv_obj_set_style_bg_color(scale, lv_color_white(), 0);
+     lv_obj_set_style_bg_opa(scale, LV_OPA_100, 0);
+     lv_obj_set_style_pad_left(scale, 8, 0);
+     lv_obj_set_style_radius(scale, 5, 0);
+     lv_obj_set_style_pad_ver(scale, 10, 0);
 }
 
 /**
@@ -207,14 +228,14 @@ static void init_labels(void)
     lv_obj_center(label_disk_space_total);
 
     // SetDefaiultValue
-    lv_label_set_text(label_net_up, "0.0K/s");
+    /*lv_label_set_text(label_net_up, "0.0K/s");
     lv_label_set_text(label_net_dn, "0.0K/s");
     lv_label_set_text(label_cpu_temp, "CPU: -");
     lv_label_set_text(label_mem_desc, "33.48MB/27.96 MB");
 
     lv_label_set_text(label_disk_mount, "ubi0:rootfs: /");
     lv_label_set_text(label_disk_space_use, "使用: 61.2MB 剩余: 6MB");
-    lv_label_set_text(label_disk_space_total, "总量: 67.1MB");
+    lv_label_set_text(label_disk_space_total, "总量: 67.1MB");*/
 
     // Init CPU INFO
     lv_obj_t * flex = lv_obj_create(container);
@@ -244,8 +265,8 @@ static void init_labels(void)
     lv_obj_set_style_text_opa(label_cpu_core, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_font(label_cpu_core, &douyin_12, LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_label_set_text(label_cpu_name, "ARMv7 Processor rev 5(v7l)");
-    lv_label_set_text(label_cpu_core, "Core: 1");
+    /* lv_label_set_text(label_cpu_name, "ARMv7 Processor rev 5(v7l)");
+     lv_label_set_text(label_cpu_core, "Core: 1");*/
     lv_obj_align_to(label_cpu_core, label_cpu_name, LV_ALIGN_LEFT_MID, 0, 0);
 
     // lv_obj_set_style_pad_row(flex, 5, 0);
@@ -269,7 +290,8 @@ static lv_obj_t * init_arcs(int32_t x, char * title)
     lv_obj_set_pos(arc, x, 90);
     lv_arc_set_rotation(arc, 135);
     lv_arc_set_bg_angles(arc, 0, 270);
-    lv_arc_set_value(arc, 50);
+    lv_arc_set_range(arc, 0, 100);
+    lv_arc_set_value(arc, 0);
     arc->user_data = label;
     lv_obj_set_style_text_font(label, &douyin_10, 0);
     lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -297,8 +319,9 @@ static lv_obj_t * init_arcs(int32_t x, char * title)
  */
 static void update_arc_val(lv_obj_t * arc, int32_t val)
 {
-    lv_arc_set_value(arc_cpu, 10);
-    lv_label_set_text_fmt(arc->user_data, "%" LV_PRId32 "%%", lv_arc_get_value(arc_cpu));
+    lv_arc_set_value(arc, val);
+    lv_label_set_text_fmt(arc->user_data, "%" LV_PRId32 "%%", lv_arc_get_value(arc));
+    lv_arc_rotate_obj_to_angle(arc, arc->user_data, -18);
 }
 
 static void init_icon(void)
@@ -362,6 +385,8 @@ static void on_page_create(ui_data_t * ui_dat, void * params)
     // 初始时间控件
     init_date_time(tv);
 
+    // 手动先调用一遍
+    timer_refresh_system_monitor(NULL);
     sys_timer = lv_timer_create(timer_refresh_system_monitor, 1000, NULL);
 }
 
