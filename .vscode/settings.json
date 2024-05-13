@@ -5,6 +5,7 @@
 		"time.h": "c",
 		"unistd.h": "c",
 		"cpu_monitor.h": "c",
-		"stdlib.h": "c"
+		"stdlib.h": "c",
+		"application.h": "c"
 	}
 }

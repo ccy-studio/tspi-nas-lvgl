@@ -8,7 +8,7 @@
                 "${workspaceFolder}/app/**",
                 "${workspaceFolder}/store/**",
                 "${workspaceFolder}/uikit/**",
-                "${workspaceFolder}/monitor_ser/**"
+                "${workspaceFolder}/monitor/**"
             ],
             "defines": [],
             "cStandard": "c99",
