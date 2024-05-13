@@ -34,7 +34,7 @@ static lv_obj_t * page_get_view()
 }
 
 ui_data_t page_lunch = {.id = PAGE_LUNCH,
-                        //.launcher      = true,
+                        .launcher      = true,
                         .launcher_mode = SINGLE_TASK,
                         .fun_get_view  = page_get_view,
                         .fun_on_create = on_page_create,

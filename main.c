@@ -3,11 +3,12 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2024-04-24 10:34:42
- * @LastEditTime: 2024-04-24 15:18:32
+ * @LastEditTime: 2024-05-13 09:53:50
  */
 #include <pthread.h>
 #include <time.h>
 #include <unistd.h>
+#include "app/application.h"
 #include "lvgl/demos/lv_demos.h"
 #include "lvgl/lvgl.h"
 
@@ -27,7 +28,10 @@ int main(int argc, char** argv) {
                              DISP_HIGHT);  // 设置触摸最大范围和最小范围
 
     /*Create a Demo*/
-    lv_demo_widgets();
+    // lv_demo_widgets();
+
+    // 启动
+    app_lunch();
 
     /*Handle LVGL tasks*/
     while (1) {
