@@ -14,8 +14,8 @@ typedef struct {
     unsigned int core_num;
 } cpu_info_t;
 
-double get_sys_cpu_usage();
-double get_sys_cpu_temp();
+void get_sys_cpu_usage(cpu_info_t* info);
+void get_sys_cpu_temp(cpu_info_t* info);
 void get_sys_cpu(cpu_info_t* info);
 
 #ifdef __cplusplus

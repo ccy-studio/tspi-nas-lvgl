@@ -4,26 +4,30 @@
 #include "monitor/memory_monitor.h"
 #include "monitor/net_monitor.h"
 
-lv_obj_t * tv;
-static lv_obj_t * container;              // 页面根
-static lv_obj_t * label_net_up;           // 网络-上行
-static lv_obj_t * label_net_dn;           // 网络-下行
-static lv_obj_t * label_cpu_name;         // CPU名称
-static lv_obj_t * label_cpu_core;         // CPU核心数
-static lv_obj_t * label_cpu_temp;         // CPU温度
-static lv_obj_t * label_mem_desc;         // 内存使用详情
-static lv_obj_t * label_disk_mount;       // 硬盘-挂载名称
-static lv_obj_t * label_disk_space_use;   // 硬盘-已用
-static lv_obj_t * label_disk_space_total; // 硬盘-总量
+lv_obj_t* tv;
+static lv_obj_t* container;               // 页面根
+static lv_obj_t* label_net_up;            // 网络-上行
+static lv_obj_t* label_net_dn;            // 网络-下行
+static lv_obj_t* label_cpu_name;          // CPU名称
+static lv_obj_t* label_cpu_core;          // CPU核心数
+static lv_obj_t* label_cpu_temp;          // CPU温度
+static lv_obj_t* label_mem_desc;          // 内存使用详情
+static lv_obj_t* label_disk_mount;        // 硬盘-挂载名称
+static lv_obj_t* label_disk_space_use;    // 硬盘-已用
+static lv_obj_t* label_disk_space_total;  // 硬盘-总量
 
-static lv_obj_t * arc_cpu; // 百分比环-CPU
-static lv_obj_t * arc_mem; // 百分比环-MEM
+static lv_obj_t* arc_cpu;  // 百分比环-CPU
+static lv_obj_t* arc_mem;  // 百分比环-MEM
 
-static lv_obj_t * bar_cpu_temp; // 温度图形Bar控件
+static lv_obj_t* bar_cpu_temp;  // 温度图形Bar控件
 
-static lv_obj_t * bar_disk; // 硬盘-Bar进度条控件
+static lv_obj_t* bar_disk;  // 硬盘-Bar进度条控件
 
-lv_timer_t * sys_timer;
+pthread_t sys_thread;
+static cpu_info_t cpu;
+static disk_info_t disk;
+static mem_info_t mem;
+static net_info_t net;
 
 // 声明图片文件
 LV_IMG_DECLARE(img_cpu)
@@ -34,54 +38,36 @@ LV_IMG_DECLARE(img_net_up)
 LV_IMG_DECLARE(img_zd)
 LV_IMG_DECLARE(gif_cat)
 
-extern void init_date_time(lv_obj_t * root);
+extern void init_date_time(lv_obj_t* root);
 
-static void update_arc_val(lv_obj_t * arc, int32_t val);
+static void update_arc_val(lv_obj_t* arc, int32_t val);
 
-/**
- * @brief 刷新系统监控指标
- * @param timer
- */
-void timer_refresh_system_monitor(lv_timer_t * timer)
-{
-    static cpu_info_t cpu;
-    static disk_info_t disk;
-    static mem_info_t mem;
-    static net_info_t net;
-    static bool init_frist = false;
+static void refresh_ui_monitor() {
+    lv_label_set_text(label_cpu_name, cpu.model_name);
+    lv_label_set_text_fmt(label_cpu_core, "Core:%" LV_PRId32, cpu.core_num);
+    lv_label_set_text(label_disk_mount, SYS_MONITOR_DISK_NAME);
 
-    if(!init_frist) {
-        init_frist = true;
-        get_sys_cpu(&cpu);
-        lv_label_set_text(label_cpu_name, cpu.model_name);
-        lv_label_set_text_fmt(label_cpu_core, "Core:%" LV_PRId32, cpu.core_num);
-
-        lv_label_set_text(label_disk_mount, SYS_MONITOR_DISK_NAME);
-    }
-
-    get_sys_disk_usage(&disk, SYS_MONITOR_DISK_NAME);
-    get_sys_memory_usage(&mem);
-    get_sys_current_net_speed(&net);
-
-    lv_label_set_text_fmt(label_disk_space_use, "使用: %s 剩余:%s", disk.used, disk.avail);
+    lv_label_set_text_fmt(label_disk_space_use, "使用: %s 剩余:%s", disk.used,
+                          disk.avail);
     lv_label_set_text_fmt(label_disk_space_total, "总量: %s", disk.size);
 
     int val;
     // 去除百分号
-    if(disk.use_percent[strlen(disk.use_percent) - 1] == '%') {
-        disk.use_percent[strlen(disk.use_percent) - 1] = '\0'; // 将百分号替换为字符串结束符
+    if (disk.use_percent[strlen(disk.use_percent) - 1] == '%') {
+        disk.use_percent[strlen(disk.use_percent) - 1] =
+            '\0';  // 将百分号替换为字符串结束符
     }
     // 将剩余的部分转换为数字
     val = atoi(disk.use_percent);
     lv_bar_set_value(bar_disk, val, LV_ANIM_ON);
 
-    double cpu_temp = get_sys_cpu_temp();
-    lv_label_set_text_fmt(label_cpu_temp, "CPU:%.1fC", cpu_temp);
-    lv_bar_set_value(bar_cpu_temp, cpu_temp, LV_ANIM_ON);
+    lv_label_set_text_fmt(label_cpu_temp, "CPU:%.1fC", cpu.temp);
+    lv_bar_set_value(bar_cpu_temp, cpu.temp, LV_ANIM_ON);
 
-    update_arc_val(arc_cpu, (int32_t)get_sys_cpu_usage());
+    update_arc_val(arc_cpu, (int32_t)cpu.usage);
     update_arc_val(arc_mem, (int32_t)mem.memory_use_percent);
-    lv_label_set_text_fmt(label_mem_desc, "%s/%s", format_sys_mem_str(mem.memory_use_count),
+    lv_label_set_text_fmt(label_mem_desc, "%s/%s",
+                          format_sys_mem_str(mem.memory_use_count),
                           format_sys_mem_str(mem.memory_size));
 
     lv_label_set_text_fmt(label_net_up, "%.2fKb/s", net.tx_speed);
@@ -89,18 +75,44 @@ void timer_refresh_system_monitor(lv_timer_t * timer)
 }
 
 /**
+ * @brief 刷新系统监控指标
+ * @param timer
+ */
+void* timer_refresh_system_monitor(void* arg) {
+    while (true) {
+        static bool init_frist = false;
+        if (!init_frist) {
+            init_frist = true;
+            get_sys_cpu(&cpu);
+        }
+        get_sys_disk_usage(&disk, SYS_MONITOR_DISK_NAME);
+        get_sys_memory_usage(&mem);
+		printf("mem:total:%ld, use:%ld\n",mem.memory_size,mem.memory_use_count);
+        get_sys_current_net_speed(&net);
+        get_sys_cpu_temp(&cpu);
+        get_sys_cpu_usage(&cpu);
+        lv_async_call(refresh_ui_monitor, NULL);
+        if (arg != NULL) {
+            return NULL;
+        }
+        my_sleep(1000);
+    }
+    return NULL;
+}
+
+/**
  * @brief 初始化磁盘进度Bar控件
  * @param
  */
-static void init_disk_bar(void)
-{
+static void init_disk_bar(void) {
     bar_disk = lv_bar_create(container);
     lv_obj_set_size(bar_disk, 130, 18);
     lv_obj_set_pos(bar_disk, 150, 215);
     lv_bar_set_start_value(bar_disk, 0, LV_ANIM_ON);
     lv_obj_set_style_bg_opa(bar_disk, LV_OPA_COVER, 0);
     lv_obj_set_style_bg_color(bar_disk, lv_color_hex(0x2d2e36), LV_PART_MAIN);
-    lv_obj_set_style_bg_color(bar_disk, lv_color_hex(0x12a182), LV_PART_INDICATOR);
+    lv_obj_set_style_bg_color(bar_disk, lv_color_hex(0x12a182),
+                              LV_PART_INDICATOR);
     lv_bar_set_value(bar_disk, 0, LV_ANIM_ON);
 }
 
@@ -108,8 +120,7 @@ static void init_disk_bar(void)
  * @brief 初始化CPU温度控件
  * @param
  */
-static void init_bar_cpu_temp(void)
-{
+static void init_bar_cpu_temp(void) {
     static lv_style_t style_indic;
     lv_style_init(&style_indic);
     lv_style_set_bg_opa(&style_indic, LV_OPA_COVER);
@@ -128,27 +139,28 @@ static void init_bar_cpu_temp(void)
  * @brief 初始化文本控件
  * @param
  */
-static void init_labels(void)
-{
+static void init_labels(void) {
     label_net_up = lv_label_create(container);
     label_net_dn = lv_label_create(container);
 
-    label_cpu_temp         = lv_label_create(container);
-    label_mem_desc         = lv_label_create(container);
-    label_disk_mount       = lv_label_create(container);
-    label_disk_space_use   = lv_label_create(container);
+    label_cpu_temp = lv_label_create(container);
+    label_mem_desc = lv_label_create(container);
+    label_disk_mount = lv_label_create(container);
+    label_disk_space_use = lv_label_create(container);
     label_disk_space_total = lv_label_create(bar_disk);
 
     // Set Style
     set_label_style(label_net_up, lv_color_white(), 57, 17.5, &douyin_12);
     set_label_style(label_net_dn, lv_color_white(), 57, 47.5, &douyin_12);
     set_label_style(label_cpu_temp, lv_color_white(), 12, 72, &douyin_10);
-    set_label_style(label_mem_desc, lv_color_white(), lv_obj_get_x(arc_mem) + 3, lv_obj_get_y2(arc_mem) + 2,
-                    &douyin_10);
+    set_label_style(label_mem_desc, lv_color_white(), lv_obj_get_x(arc_mem) + 3,
+                    lv_obj_get_y2(arc_mem) + 2, &douyin_10);
 
     set_label_style(label_disk_mount, lv_color_white(), 6, 205 + 6, &douyin_12);
-    set_label_style(label_disk_space_use, lv_color_white(), 6, 222 + 6, &douyin_12);
-    set_label_style(label_disk_space_total, lv_color_white(), 135, 215 + 6, &douyin_12);
+    set_label_style(label_disk_space_use, lv_color_white(), 6, 222 + 6,
+                    &douyin_12);
+    set_label_style(label_disk_space_total, lv_color_white(), 135, 215 + 6,
+                    &douyin_12);
     lv_obj_center(label_disk_space_total);
 
     // SetDefaiultValue
@@ -162,7 +174,7 @@ static void init_labels(void)
     lv_label_set_text(label_disk_space_total, "总量: 67.1MB");*/
 
     // Init CPU INFO
-    lv_obj_t * flex = lv_obj_create(container);
+    lv_obj_t* flex = lv_obj_create(container);
     lv_obj_remove_style_all(flex);
     lv_obj_set_layout(flex, LV_LAYOUT_FLEX);
     lv_obj_set_pos(flex, 118, 30);
@@ -170,24 +182,31 @@ static void init_labels(void)
     lv_obj_set_style_pad_hor(flex, 6, 0);
     // lv_obj_set_size(flex, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_flex_flow(flex, LV_FLEX_FLOW_ROW_WRAP);
-    lv_obj_set_flex_align(flex, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_START);
+    lv_obj_set_flex_align(flex, LV_FLEX_ALIGN_END, LV_FLEX_ALIGN_CENTER,
+                          LV_FLEX_ALIGN_START);
 
     /*lv_obj_set_style_bg_opa(flex, 255, 0);
     lv_obj_set_style_bg_color(flex, lv_color_hex(0xff0000), 0);*/
 
-    lv_obj_t * icon = lv_image_create(flex);
+    lv_obj_t* icon = lv_image_create(flex);
     lv_image_set_src(icon, &img_cpu);
     label_cpu_name = lv_label_create(flex);
     label_cpu_core = lv_label_create(flex);
     lv_obj_add_flag(label_cpu_core, LV_OBJ_FLAG_FLEX_IN_NEW_TRACK);
 
-    lv_obj_set_style_text_color(label_cpu_name, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(label_cpu_name, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(label_cpu_name, &douyin_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(label_cpu_name, lv_color_white(),
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(label_cpu_name, 255,
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(label_cpu_name, &douyin_12,
+                               LV_PART_MAIN | LV_STATE_DEFAULT);
 
-    lv_obj_set_style_text_color(label_cpu_core, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(label_cpu_core, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_font(label_cpu_core, &douyin_12, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(label_cpu_core, lv_color_white(),
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(label_cpu_core, 255,
+                              LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(label_cpu_core, &douyin_12,
+                               LV_PART_MAIN | LV_STATE_DEFAULT);
 
     /* lv_label_set_text(label_cpu_name, "ARMv7 Processor rev 5(v7l)");
      lv_label_set_text(label_cpu_core, "Core: 1");*/
@@ -203,10 +222,9 @@ static void init_labels(void)
  * @param title
  * @return
  */
-static lv_obj_t * init_arcs(int32_t x, char * title)
-{
-    lv_obj_t * arc;
-    lv_obj_t * label = lv_label_create(container);
+static lv_obj_t* init_arcs(int32_t x, char* title) {
+    lv_obj_t* arc;
+    lv_obj_t* label = lv_label_create(container);
     /*Create an Arc*/
     arc = lv_arc_create(container);
     lv_obj_remove_flag(arc, LV_OBJ_FLAG_CLICKABLE);
@@ -218,7 +236,8 @@ static lv_obj_t * init_arcs(int32_t x, char * title)
     lv_arc_set_value(arc, 0);
     arc->user_data = label;
     lv_obj_set_style_text_font(label, &douyin_10, 0);
-    lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(label, lv_color_white(),
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_label_set_text_fmt(label, "%" LV_PRId32 "%%", lv_arc_get_value(arc));
     lv_arc_rotate_obj_to_angle(arc, label, 25);
 
@@ -226,12 +245,14 @@ static lv_obj_t * init_arcs(int32_t x, char * title)
     lv_obj_center(label);
     lv_label_set_text(label, title);
     lv_obj_set_style_text_font(label, &douyin_12, 0);
-    lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_color(label, lv_color_white(),
+                                LV_PART_MAIN | LV_STATE_DEFAULT);
 
     // 添加图标
-    lv_obj_t * icon = lv_image_create(arc);
+    lv_obj_t* icon = lv_image_create(arc);
     lv_image_set_src(icon, &img_zd);
-    lv_obj_align(icon, LV_ALIGN_BOTTOM_MID, 0, -(lv_obj_get_height(arc) / 2 / 2));
+    lv_obj_align(icon, LV_ALIGN_BOTTOM_MID, 0,
+                 -(lv_obj_get_height(arc) / 2 / 2));
 
     return arc;
 }
@@ -241,16 +262,15 @@ static lv_obj_t * init_arcs(int32_t x, char * title)
  * @param arc
  * @param val
  */
-static void update_arc_val(lv_obj_t * arc, int32_t val)
-{
+static void update_arc_val(lv_obj_t* arc, int32_t val) {
     lv_arc_set_value(arc, val);
-    lv_label_set_text_fmt(arc->user_data, "%" LV_PRId32 "%%", lv_arc_get_value(arc));
+    lv_label_set_text_fmt(arc->user_data, "%" LV_PRId32 "%%",
+                          lv_arc_get_value(arc));
     lv_arc_rotate_obj_to_angle(arc, arc->user_data, -18);
 }
 
-static void init_icon(void)
-{
-    lv_obj_t * icon = lv_img_create(container);
+static void init_icon(void) {
+    lv_obj_t* icon = lv_img_create(container);
     lv_image_set_src(icon, &img_net_dn);
     lv_obj_set_size(icon, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_obj_set_pos(icon, 15, 40);
@@ -271,23 +291,24 @@ static void init_icon(void)
     lv_obj_set_pos(icon, 294, 213);
 }
 
-static void on_page_create(ui_data_t * ui_dat, void * params)
-{
+static void on_page_create(ui_data_t* ui_dat, void* params) {
     tv = lv_tileview_create(NULL);
     lv_obj_set_size(tv, lv_disp_get_hor_res(NULL), lv_disp_get_ver_res(NULL));
     lv_obj_set_style_bg_opa(tv, 0, 0);
     lv_obj_set_style_bg_color(tv, lv_color_black(), 0);
-    // lv_obj_add_flag(tv, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN | LV_OBJ_FLAG_GESTURE_BUBBLE);
+    // lv_obj_add_flag(tv, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN |
+    // LV_OBJ_FLAG_GESTURE_BUBBLE);
     lv_obj_set_scrollbar_mode(tv, LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(tv, LV_OBJ_FLAG_SCROLL_MOMENTUM);
     lv_obj_remove_flag(tv, LV_OBJ_FLAG_SCROLL_ELASTIC);
 
-    container            = lv_tileview_add_tile(tv, 0, 0, LV_DIR_HOR);
+    container = lv_tileview_add_tile(tv, 0, 0, LV_DIR_HOR);
     container->user_data = ui_dat;
     lv_obj_set_style_bg_color(container, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(container, 255, LV_PART_MAIN);
 
-    /*lv_obj_add_flag(container, LV_OBJ_FLAG_SCROLLABLE | LV_OBJ_FLAG_SCROLL_CHAIN | LV_OBJ_FLAG_GESTURE_BUBBLE);*/
+    /*lv_obj_add_flag(container, LV_OBJ_FLAG_SCROLLABLE |
+     * LV_OBJ_FLAG_SCROLL_CHAIN | LV_OBJ_FLAG_GESTURE_BUBBLE);*/
 
     // 构建UI组件
     init_bar_cpu_temp();
@@ -300,7 +321,7 @@ static void on_page_create(ui_data_t * ui_dat, void * params)
     init_disk_bar();
 
     // 添加小猫GIF动图
-    lv_obj_t * gif = lv_gif_create(container);
+    lv_obj_t* gif = lv_gif_create(container);
     lv_gif_set_src(gif, &gif_cat);
     lv_obj_set_pos(gif, 97, 163);
 
@@ -309,22 +330,20 @@ static void on_page_create(ui_data_t * ui_dat, void * params)
     // 初始时间控件
     init_date_time(tv);
 
-    // 手动先调用一遍
-    timer_refresh_system_monitor(NULL);
-    sys_timer = lv_timer_create(timer_refresh_system_monitor, 1000, NULL);
+    // 手动先调用一遍,随便传入一个指针不为空的
+    timer_refresh_system_monitor(arc_cpu);
+    pthread_create(&sys_thread, NULL, timer_refresh_system_monitor, NULL);
 }
 
-static void on_page_destoy(void * params)
-{}
+static void on_page_destoy(void* params) {}
 
-static lv_obj_t * page_get_view()
-{
+static lv_obj_t* page_get_view() {
     return tv;
 }
 
-ui_data_t page_monitor = {.id            = PAGE_MONITOR_STYLE1,
+ui_data_t page_monitor = {.id = PAGE_MONITOR_STYLE1,
                           .launcher_mode = SINGLE_TASK,
                           //.launcher      = true,
-                          .fun_get_view  = page_get_view,
+                          .fun_get_view = page_get_view,
                           .fun_on_create = on_page_create,
                           .fun_on_destoy = on_page_destoy};

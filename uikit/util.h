@@ -33,6 +33,8 @@ void set_label_style(lv_obj_t * label, lv_color_t color, int32_t x, int32_t y, l
 
 void get_current_datetime(datetime_t * dat);
 
+void my_sleep(unsigned int milliseconds);
+
 #ifdef __cplusplus
 }
 #endif

@@ -29,6 +29,8 @@
 #define DISP_WIDTH 320
 #define DISP_HIGHT 240
 
+#define LV_LINUX
+
 #define DIS_MAP(x, in_min, in_max, out_min, out_max) \
 ({ \
     const long dividend = (out_max) - (out_min); \
@@ -43,7 +45,7 @@
  *====================*/
 
 /*Color depth: 8 (A8), 16 (RGB565), 24 (RGB888), 32 (XRGB8888)*/
-#define LV_COLOR_DEPTH 16
+#define LV_COLOR_DEPTH 32
 
 /*=========================
    STDLIB WRAPPER SETTINGS
@@ -224,7 +226,7 @@
  *-----------*/
 
 /*Enable the log module*/
-#define LV_USE_LOG 0
+#define LV_USE_LOG 1
 #if LV_USE_LOG
 
     /*How important log should be added:
@@ -395,7 +397,7 @@
 #define LV_ATTRIBUTE_EXTERN_DATA
 
 /* Use `float` as `lv_value_precise_t` */
-#define LV_USE_FLOAT            0
+#define LV_USE_FLOAT            1
 
 /*==================
  *   FONT USAGE
@@ -631,7 +633,7 @@
 /*File system interfaces for common APIs */
 
 /*API for fopen, fread, etc*/
-#define LV_USE_FS_STDIO 1
+#define LV_USE_FS_STDIO 0
 #if LV_USE_FS_STDIO
     #define LV_FS_STDIO_LETTER 'A'     /*Set an upper cased letter on which the drive will accessible (e.g. 'A')*/
     #define LV_FS_STDIO_PATH ""         /*Set the working directory. File/directory paths will be appended to it.*/
@@ -848,7 +850,7 @@
 
 /*1: Enable file explorer*/
 /*Requires: lv_table*/
-#define LV_USE_FILE_EXPLORER                     1  //启用文件管理
+#define LV_USE_FILE_EXPLORER                     0  //启用文件管理
 #if LV_USE_FILE_EXPLORER
     /*Maximum length of path*/
     #define LV_FILE_EXPLORER_PATH_MAX_LEN        (256)
@@ -888,7 +890,7 @@
 #if LV_USE_LINUX_FBDEV
     #define LV_LINUX_FBDEV_BSD           0  //不开启BSD风格 https://worktile.com/kb/ask/317850.html
     #define LV_LINUX_FBDEV_RENDER_MODE   LV_DISPLAY_RENDER_MODE_PARTIAL
-    #define LV_LINUX_FBDEV_BUFFER_COUNT  0
+    #define LV_LINUX_FBDEV_BUFFER_COUNT  2 //开启双缓存
     #define LV_LINUX_FBDEV_BUFFER_SIZE   60
 #endif
 

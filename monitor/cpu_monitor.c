@@ -1,7 +1,6 @@
 #include "cpu_monitor.h"
 #include <unistd.h>
 
-
 typedef struct cpu_occupy_  // 定义一个cpu occupy的结构体
 {
     char name[20];      // 定义一个char类型的数组名name有20个元素
@@ -59,7 +58,7 @@ void get_cpuoccupy(cpu_occupy_t* cpust) {
     fclose(fd);
 }
 
-double get_sys_cpu_usage() {
+void get_sys_cpu_usage(cpu_info_t* info) {
     cpu_occupy_t cpu_stat1;
     cpu_occupy_t cpu_stat2;
     double cpu;
@@ -71,10 +70,10 @@ double get_sys_cpu_usage() {
     // 计算cpu使用率
     cpu = cal_cpuoccupy((cpu_occupy_t*)&cpu_stat1, (cpu_occupy_t*)&cpu_stat2);
 
-    return cpu;
+    info->usage = cpu;
 }
 
-double get_sys_cpu_temp() {
+void get_sys_cpu_temp(cpu_info_t* info) {
     FILE* fd;
     long temp;
     fd = fopen("/sys/class/thermal/thermal_zone0/temp", "r");
@@ -85,7 +84,7 @@ double get_sys_cpu_temp() {
     fscanf(fd, "%ld", &temp);
 
     fclose(fd);
-    return temp / 1000.0;
+    info->temp = temp / 1000.0;
 }
 
 void get_sys_cpu_name(char* name) {
@@ -113,8 +112,8 @@ unsigned int get_sys_cpu_core_num() {
 }
 
 void get_sys_cpu(cpu_info_t* info) {
-    info->usage = get_sys_cpu_usage();
-    info->temp = get_sys_cpu_temp();
+    get_sys_cpu_usage(info);
+    get_sys_cpu_temp(info);
     info->core_num = get_sys_cpu_core_num();
     get_sys_cpu_name(info->model_name);
 }

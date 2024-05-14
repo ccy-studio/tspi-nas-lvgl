@@ -7,6 +7,7 @@ extern "C" {
 #include "uikit/ui.h"
 #include "uikit/data_bus.h"
 #include "uikit/util.h"
+#include <pthread.h>
 
 /* LVGL-9 */
 

@@ -39,7 +39,7 @@ void get_sys_memory_usage(mem_info_t* info) {
 
     // Calculate used memory including buffers and cached
     info->memory_use_count =
-        info->memory_size - info->memory_free_count - buffers_kb - cached_kb;
+        (info->memory_size - info->memory_free_count - buffers_kb - cached_kb);
     // 计算百分比
     info->memory_use_percent =
         ((double)info->memory_use_count / info->memory_size) * 100.0;
