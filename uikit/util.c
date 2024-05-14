@@ -33,7 +33,7 @@ void set_label_style(lv_obj_t* label,
                      lv_color_t color,
                      int32_t x,
                      int32_t y,
-                     lv_font_t* font) {
+                    const lv_font_t* font) {
     lv_obj_set_width(label, LV_SIZE_CONTENT);
     lv_obj_set_height(label, LV_SIZE_CONTENT);
     lv_obj_set_x(label, x);

@@ -6,6 +6,8 @@
 		"unistd.h": "c",
 		"cpu_monitor.h": "c",
 		"stdlib.h": "c",
-		"application.h": "c"
+		"application.h": "c",
+		"functional": "c",
+		"ui.h": "c"
 	}
 }

@@ -23,7 +23,7 @@ static lv_obj_t* bar_cpu_temp;  // 温度图形Bar控件
 
 static lv_obj_t* bar_disk;  // 硬盘-Bar进度条控件
 
-pthread_t sys_thread;
+static pthread_t sys_thread;
 static cpu_info_t cpu;
 static disk_info_t disk;
 static mem_info_t mem;
@@ -46,32 +46,21 @@ static void refresh_ui_monitor() {
     lv_label_set_text(label_cpu_name, cpu.model_name);
     lv_label_set_text_fmt(label_cpu_core, "Core:%" LV_PRId32, cpu.core_num);
     lv_label_set_text(label_disk_mount, SYS_MONITOR_DISK_NAME);
-
     lv_label_set_text_fmt(label_disk_space_use, "使用: %s 剩余:%s", disk.used,
                           disk.avail);
     lv_label_set_text_fmt(label_disk_space_total, "总量: %s", disk.size);
-
-    int val;
-    // 去除百分号
-    if (disk.use_percent[strlen(disk.use_percent) - 1] == '%') {
-        disk.use_percent[strlen(disk.use_percent) - 1] =
-            '\0';  // 将百分号替换为字符串结束符
-    }
-    // 将剩余的部分转换为数字
-    val = atoi(disk.use_percent);
-    lv_bar_set_value(bar_disk, val, LV_ANIM_ON);
-
+    lv_bar_set_value(bar_disk, disk.use_percent_int, LV_ANIM_ON);
     lv_label_set_text_fmt(label_cpu_temp, "CPU:%.1fC", cpu.temp);
     lv_bar_set_value(bar_cpu_temp, cpu.temp, LV_ANIM_ON);
-
     update_arc_val(arc_cpu, (int32_t)cpu.usage);
     update_arc_val(arc_mem, (int32_t)mem.memory_use_percent);
-    lv_label_set_text_fmt(label_mem_desc, "%s/%s",
-                          format_sys_mem_str(mem.memory_use_count),
-                          format_sys_mem_str(mem.memory_size));
-
-    lv_label_set_text_fmt(label_net_up, "%.2fKb/s", net.tx_speed);
-    lv_label_set_text_fmt(label_net_dn, "%.2fKb/s", net.rx_speed);
+    char buf[20];
+    char buf2[20];
+    format_sys_mem_str(mem.memory_use_count, buf);
+    format_sys_mem_str(mem.memory_size, buf2);
+    lv_label_set_text_fmt(label_mem_desc, "%s/%s", buf, buf2);
+    lv_label_set_text(label_net_up, net.tx_speed);
+    lv_label_set_text(label_net_dn, net.rx_speed);
 }
 
 /**
@@ -82,12 +71,12 @@ void* timer_refresh_system_monitor(void* arg) {
     while (true) {
         static bool init_frist = false;
         if (!init_frist) {
+            strcpy(net.net_name, SYS_NET_NAME);
             init_frist = true;
             get_sys_cpu(&cpu);
         }
         get_sys_disk_usage(&disk, SYS_MONITOR_DISK_NAME);
         get_sys_memory_usage(&mem);
-		printf("mem:total:%ld, use:%ld\n",mem.memory_size,mem.memory_use_count);
         get_sys_current_net_speed(&net);
         get_sys_cpu_temp(&cpu);
         get_sys_cpu_usage(&cpu);
@@ -235,12 +224,13 @@ static lv_obj_t* init_arcs(int32_t x, char* title) {
     lv_arc_set_range(arc, 0, 100);
     lv_arc_set_value(arc, 0);
     arc->user_data = label;
-    lv_obj_set_style_text_font(label, &douyin_10, 0);
+    lv_obj_set_style_text_font(label, &douyin_12, 0);
     lv_obj_set_style_text_color(label, lv_color_white(),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_label_set_text_fmt(label, "%" LV_PRId32 "%%", lv_arc_get_value(arc));
     lv_arc_rotate_obj_to_angle(arc, label, 25);
 
+    // 内部文字
     label = lv_label_create(arc);
     lv_obj_center(label);
     lv_label_set_text(label, title);
@@ -266,7 +256,7 @@ static void update_arc_val(lv_obj_t* arc, int32_t val) {
     lv_arc_set_value(arc, val);
     lv_label_set_text_fmt(arc->user_data, "%" LV_PRId32 "%%",
                           lv_arc_get_value(arc));
-    lv_arc_rotate_obj_to_angle(arc, arc->user_data, -18);
+    lv_arc_rotate_obj_to_angle(arc, arc->user_data, 20);
 }
 
 static void init_icon(void) {

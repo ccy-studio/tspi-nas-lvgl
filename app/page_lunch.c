@@ -8,10 +8,10 @@ LV_IMG_DECLARE(img_start_lunch)
 static void timer_cb(lv_timer_t * timer)
 {
     ui_intent_t intent;
-    intent.anim = false;
+    intent.anim = true; //开启页面切换动画
     ui_fun_fast_create_intent(ui, PAGE_MONITOR_STYLE1, &intent);
     ui_fun_start_activity(&intent);
-    // 销毁
+    // 销毁当前页面
     ui_fun_finish(ui, false);
 }
 

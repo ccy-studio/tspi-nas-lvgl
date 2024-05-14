@@ -16,6 +16,7 @@ extern "C" {
 #define APP_NAME "TSPI_MONITOR" /*产品名称*/
 
 #define SYS_MONITOR_DISK_NAME "/" //监控的硬盘名称
+#define SYS_NET_NAME "wlan0" //监控的网口
 
 /*加载字体声明*/
 LV_FONT_DECLARE(douyin_12);

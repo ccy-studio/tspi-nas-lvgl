@@ -1,4 +1,5 @@
 #include "cpu_monitor.h"
+#include <string.h>
 #include <unistd.h>
 
 typedef struct cpu_occupy_  // 定义一个cpu occupy的结构体
@@ -96,6 +97,11 @@ void get_sys_cpu_name(char* name) {
     }
     fscanf(fd, "%*[^:]:%[^\n]", name);
     pclose(fd);
+
+    if (strlen(name) <= 0) {
+        memset(name, 0, strlen(name));
+        strcpy(name, "ARM Cortex-A55 RK3566");
+    }
 }
 
 unsigned int get_sys_cpu_core_num() {

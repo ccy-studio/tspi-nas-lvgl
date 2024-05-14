@@ -16,6 +16,7 @@ typedef struct {
     char used[20];
     char avail[20];
     char use_percent[20];
+    unsigned int use_percent_int;
 } disk_info_t;
 
 void get_sys_disk_usage(disk_info_t* disk_info, char* fs_name);

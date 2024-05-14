@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 project(lvgl)
 
-set(CMAKE_BUILD_TYPE Release)
+# set(CMAKE_BUILD_TYPE Release)
 
 set(CMAKE_C_STANDARD 99)#C99 # lvgl officially support C99 and above
 set(CMAKE_CXX_STANDARD 17)#C17
@@ -21,8 +21,9 @@ file(GLOB STORE ${CMAKE_CURRENT_SOURCE_DIR}/store/*.c)
 file(GLOB FONT ${CMAKE_CURRENT_SOURCE_DIR}/font/*.c)
 file(GLOB IMG ${CMAKE_CURRENT_SOURCE_DIR}/image/*.c)
 
-add_executable(main main.c ${STORE} ${UIKIT} ${MONITOR} ${FONT} ${IMG} ${APP})
+add_executable(nas_monitor main.c ${STORE} ${UIKIT} ${MONITOR} ${FONT} ${IMG} ${APP})
 
-target_link_libraries(main lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES} m pthread)
-add_custom_target (run COMMAND ${EXECUTABLE_OUTPUT_PATH}/main DEPENDS main)
+# target_link_libraries(nas_monitor lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES} m pthread)
+target_link_libraries(nas_monitor lvgl lvgl::thorvg ${SDL2_LIBRARIES} m pthread)
+add_custom_target (run COMMAND ${EXECUTABLE_OUTPUT_PATH}/main DEPENDS nas_monitor)
 

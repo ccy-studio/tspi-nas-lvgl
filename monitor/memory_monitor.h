@@ -19,8 +19,8 @@ void get_sys_memory_usage(mem_info_t* info);
 /**
  * 格式化返回内存大小: kb,mb,gb
  * @size 入参字节
-*/
-char* format_sys_mem_str(unsigned long long size);
+ */
+void format_sys_mem_str(unsigned long long size, char* result);
 
 #ifdef __cplusplus
 }

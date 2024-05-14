@@ -38,7 +38,7 @@ static void init_date_time_widget() {
     label_week = lv_label_create(container);
     label_date = lv_label_create(container);
     set_label_style(label_week, lv_color_hex(0xACF48C), 129, 217, &douyin_12);
-    set_label_style(label_date, lv_color_hex(0xACF48C), 233, 217, &douyin_12);
+    set_label_style(label_date, lv_color_hex(0xACF48C), 227, 217, &douyin_12);
 
     label_time_hour = lv_label_create(container);
     label_time_minute = lv_label_create(container);
@@ -49,20 +49,11 @@ static void init_date_time_widget() {
                     &font_dignum);
     set_label_style(label_time_second, lv_color_hex(0x2EFC33), 282, 166,
                     &douyin_12);
-
-    /*lv_label_set_text(label_week, "星期五");
-    lv_label_set_text(label_date, "24年 5月/3日");
-    lv_label_set_text(label_time_hour, "18");
-    lv_label_set_text(label_time_minute, "00");*/
 }
 
 static void* timer_refresh_datetime(void* arg) {
-    printf("========创建线程 timer_refresh_datetime\n");
     while (true) {
         get_current_datetime(&datetime);
-        printf("当前时间：%d年%d月%d日 %d时%d分%d秒 %s\n", datetime.year,
-               datetime.month, datetime.day, datetime.hour, datetime.minute,
-               datetime.second, datetime.week_str);
 		lv_async_call(refresh_ui_timer,NULL);
         my_sleep(500);
     }
