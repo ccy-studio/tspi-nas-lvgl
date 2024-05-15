@@ -1,7 +1,7 @@
 ﻿#include "ui.h"
 
 #define MAX_STACK_COUNT 10  // 最大栈的数量
-#define _ANIM_DELAY 200 //动画
+#define _ANIM_DELAY 200     // 动画
 
 /**
  * 双向链表结构体
@@ -12,9 +12,9 @@ typedef struct activity_stack_link {
     struct activity_stack_link* pre;
 } activity_stack_link_t;
 
-static activity_stack_link_t l_root;  // 定义链表
-static activity_stack_link_t* l_bottom_p; //栈顶顶层，当前活动的Activity
-static uint8_t ui_stack_index = 1; //标记当前栈内元素数量
+static activity_stack_link_t l_root;       // 定义链表
+static activity_stack_link_t* l_bottom_p;  // 栈顶顶层，当前活动的Activity
+static uint8_t ui_stack_index = 1;         // 标记当前栈内元素数量
 
 static lv_obj_t* _init_empty_scr;
 
@@ -23,8 +23,8 @@ static uint8_t page_size;
 ui_data_t** ui_data_def;
 static void ui_deinit_group(ui_data_t* ui_dat);
 
-//KeyDev
-//extern lv_indev_t* lv_win32_keypad_device_object;
+// KeyDev
+// extern lv_indev_t* lv_win32_keypad_device_object;
 
 void ui_init_and_start(ui_data_t** pages, uint8_t len) {
     if (pages == NULL || len == 0) {
@@ -39,9 +39,9 @@ void ui_init_and_start(ui_data_t** pages, uint8_t len) {
         dispp, lv_palette_main(LV_PALETTE_BLUE),
         lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
-    //寻找启动页并初始化
+    // 寻找启动页并初始化
     for (int i = 0; i < page_size; i++) {
-        //如果是Launcher启动页就初始化为root根节点的链表头
+        // 如果是Launcher启动页就初始化为root根节点的链表头
         if (ui_data_def[i]->launcher) {
             l_root.ui_data = ui_data_def[i];
             l_root.next = NULL;
@@ -85,12 +85,10 @@ static void push_stack(ui_data_t* activity) {
         if (l_bottom_p->ui_data == activity) {
             return;
         }
-    }
-    else if (activity->launcher_mode == SINGLE_TASK) {
+    } else if (activity->launcher_mode == SINGLE_TASK) {
         if (l_bottom_p->ui_data == activity) {
             return;
-        }
-        else {
+        } else {
             activity_stack_link_t* p = &l_root;
             bool del = false;
             ui_stack_index = 0;
@@ -125,7 +123,8 @@ static void push_stack(ui_data_t* activity) {
     activity_stack_link_t* p =
         (activity_stack_link_t*)malloc(sizeof(activity_stack_link_t));
     if (p == NULL) {
-        ui_error("Error: Failed to create memory space while pressing the stack");
+        ui_error(
+            "Error: Failed to create memory space while pressing the stack");
         return;
     }
     p->ui_data = activity;
@@ -155,7 +154,7 @@ static void pull_stack(ui_data_t* activity) {
     activity_stack_link_t* p = l_root.next;
     while (p != NULL) {
         if (p->ui_data == activity) {
-            //将上一级指向的Next指针指向自身的Next指针
+            // 将上一级指向的Next指针指向自身的Next指针
             p->pre->next = p->next;
             if (p == l_bottom_p) {
                 l_bottom_p = p->pre;
@@ -172,8 +171,8 @@ static void pull_stack(ui_data_t* activity) {
  * 创建Intent意图
  */
 void ui_fun_fast_create_intent(ui_data_t* _this,
-    activity_id_t target,
-    ui_intent_t* intent) {
+                               activity_id_t target,
+                               ui_intent_t* intent) {
     ui_data_t* target_data = find_by_id(target);
     if (_this == NULL || target_data == NULL) {
         ui_error("fail,Unable to find data based on ID(ui_fun_fast_create)");
@@ -199,20 +198,17 @@ void ui_fun_start_activity(ui_intent_t* intent) {
     }
     if (intent->anim) {
         _ui_load_scr_opa(intent->target->fun_get_view());
-    }
-    else {
+    } else {
         _ui_load_scr(intent->target->fun_get_view());
     }
     push_stack(intent->target);
 }
-
 
 static void on_activity_unload_del(lv_event_t* e) {
     ui_data_t* this_data = (ui_data_t*)e->user_data;
     lv_obj_del(lv_event_get_target(e));
     this_data->is_createed = false;
 }
-
 
 /**
  * 关闭并销毁当前的Activity
@@ -245,12 +241,12 @@ void ui_fun_finish(ui_data_t* _this, bool anim) {
         }
         if (anim) {
             _ui_load_scr_opa(l_bottom_p->ui_data->fun_get_view());
-        }
-        else {
+        } else {
             _ui_load_scr(l_bottom_p->ui_data->fun_get_view());
         }
     }
-    lv_obj_add_event_cb(_this->fun_get_view(), on_activity_unload_del, LV_EVENT_SCREEN_UNLOADED, _this);
+    lv_obj_add_event_cb(_this->fun_get_view(), on_activity_unload_del,
+                        LV_EVENT_SCREEN_UNLOADED, _this);
 }
 
 void _ui_load_scr(lv_obj_t* scr) {
@@ -264,7 +260,7 @@ void _ui_load_scr_opa(lv_obj_t* scr) {
  * @brief 向栈顶当前活动的Activity发送Event事件
  * @param event 事件类型
  * @param params 用户数据
-*/
+ */
 void ui_send_event_current(bus_event event, void* params) {
     if (l_bottom_p->ui_data->fun_handle_event != NULL) {
         l_bottom_p->ui_data->fun_handle_event(event, params);
@@ -292,12 +288,11 @@ void ui_send_event_all(bus_event event, void* params) {
     }
 }
 
-
 void ui_init_group(ui_data_t* ui_dat) {
     if (ui_dat->group == NULL) {
         ui_dat->group = lv_group_create();
         lv_group_set_default(ui_dat->group);
-        //lv_indev_set_group(lv_win32_keypad_device_object, ui_dat->group);
+        // lv_indev_set_group(lv_win32_keypad_device_object, ui_dat->group);
         /*     lv_group_set_editing(ui_dat->group, false);*/
     }
 }
@@ -305,17 +300,18 @@ void ui_init_group(ui_data_t* ui_dat) {
 /**
  * @brief 释放销毁GroupKey
  * @param ui_dat
-*/
+ */
 static void ui_deinit_group(ui_data_t* ui_dat) {
     if (ui_dat->group != NULL) {
         lv_group_remove_all_objs(ui_dat->group);
-        //lv_group_del(ui_dat->group);
+        // lv_group_del(ui_dat->group);
     }
 }
 
-
 void ui_error(char* error) {
-#if LOG
+#if LV_USE_LOG
     lv_log("(GUI Activity)ERROR==>%s\n", error);
+#else
+    printf("(GUI Activity)ERROR==>%s\n", error);
 #endif
 }

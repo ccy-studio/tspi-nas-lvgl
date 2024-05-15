@@ -18,18 +18,16 @@ void get_sys_memory_usage(mem_info_t* info) {
         ((double)info->memory_use_count / info->memory_size) * 100.0;
 }
 
-char* format_sys_mem_str(unsigned long long size) {
-    static char result[20];  // 用于存储结果的静态字符数组
-    const char* units[] = {"B", "KB", "MB", "GB"};  // 后缀单位
-    int index = 1;
 
-    double size_dbl = (double)size;  // 将输入转换为浮点数以进行除法运算
-
-    while (size_dbl >= 1024 && index < 3) {  // 检查是否需要转换单位
+void format_sys_mem_str(unsigned long long size, char * result)
+{
+    static const char * units[] = {"B", "KB", "MB", "GB"}; // 后缀单位
+    int index                   = 1;
+    double size_dbl             = (double)size; // 将输入转换为浮点数以进行除法运算
+    while(size_dbl >= 1024 && index < 3) {      // 检查是否需要转换单位
         size_dbl /= 1024;
         index++;
     }
-
-    sprintf(result, "%.2f %s", size_dbl, units[index]);  // 将结果格式化为字符串
+    sprintf(result, "%.2f %s", size_dbl, units[index]); // 将结果格式化为字符串
     return result;
 }

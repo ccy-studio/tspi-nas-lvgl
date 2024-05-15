@@ -7,6 +7,9 @@ extern "C" {
 #include "uikit/ui.h"
 #include "uikit/data_bus.h"
 #include "uikit/util.h"
+#ifdef LV_LINUX
+#include <pthread.h>
+#endif
 
 /* LVGL-9 */
 
@@ -14,7 +17,8 @@ extern "C" {
 #define APP_VERSION_CODE 1      /*版本信息*/
 #define APP_NAME "TSPI_MONITOR" /*产品名称*/
 
-#define SYS_MONITOR_DISK_NAME "/" //监控的硬盘名称
+#define SYS_MONITOR_DISK_NAME "/" // 监控的硬盘名称
+#define SYS_NET_NAME "wlan0"      // 监控的网口
 
 /*加载字体声明*/
 LV_FONT_DECLARE(douyin_12);

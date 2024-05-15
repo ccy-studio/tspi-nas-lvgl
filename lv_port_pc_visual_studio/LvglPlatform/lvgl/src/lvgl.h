@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file lvgl.h
  * This file exists only to be compatible with Arduino's library structure
  */
@@ -20,6 +20,12 @@ extern "C" {
  *      DEFINES
  *********************/
 
+#define pthread_t lv_timer_t *
+
+void inline pthread_create(void * arg1, void * arg2, void * arg3, void * arg4)
+{
+    /*lv_timer_create(arg3, 500, arg4);*/
+}
 /**********************
  *      TYPEDEFS
  **********************/

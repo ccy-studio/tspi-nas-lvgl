@@ -19,6 +19,16 @@ static void get_net_speed(unsigned long long * rx_bytes, unsigned long long * tx
     *tx_bytes = generate_random_int(10000000, 100000000000); // 假设范围在1000到10000之间
 }
 
+
+static void format_bytes(unsigned long long bytes, char * buf)
+{
+    if(bytes < 1024 * 1024) {
+        sprintf(buf, "%.2f/KB", (double)(bytes / 1024.0));
+    } else {
+        sprintf(buf, "%.2f/MB", (double)(bytes / (1024.0 * 1024.0)));
+    }
+}
+
 void get_sys_current_net_speed(net_info_t * net_info)
 {
     if(strlen(net_info->net_name) <= 0) {
@@ -28,20 +38,14 @@ void get_sys_current_net_speed(net_info_t * net_info)
     static unsigned long long rx_bytes_prev, tx_bytes_prev;
     static unsigned long long rx_bytes_curr, tx_bytes_curr;
 
-    // 获取初始接收和发送字节数
-    get_net_speed(&rx_bytes_prev, &tx_bytes_prev, net_info->net_name);
-
     // 获取当前的接收和发送字节数
     get_net_speed(&rx_bytes_curr, &tx_bytes_curr, net_info->net_name);
 
-    // 计算接收和发送速度（字节/秒）
-    net_info->rx_speed = (rx_bytes_curr - rx_bytes_prev) / 1 / 1024.0;
-    net_info->tx_speed = (tx_bytes_curr - tx_bytes_prev) / 1 / 1024.0;
+    memset(net_info->rx_speed, 0, strlen(net_info->rx_speed));
+    memset(net_info->tx_speed, 0, strlen(net_info->tx_speed));
 
-    // 转换为Kbit/s和Mbit/s
-    // rx_speed *= 8;  // 转换为Kbit/s
-    // tx_speed *= 8;  // 转换为Kbit/s
-
+    format_bytes(rx_bytes_curr - rx_bytes_prev, net_info->rx_speed);
+    format_bytes(tx_bytes_curr - tx_bytes_prev, net_info->tx_speed);
     // 更新前一个值
     rx_bytes_prev = rx_bytes_curr;
     tx_bytes_prev = tx_bytes_curr;
