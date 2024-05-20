@@ -9,16 +9,17 @@ static lv_obj_t * label_time_second;
 
 lv_obj_t * gif_boy_lv;
 
-pthread_t sys_date_timer;
+static pthread_t sys_date_timer;
 
 static datetime_t datetime;
 
 LV_IMG_DECLARE(img_datetime)
 LV_IMG_DECLARE(gif_radiantboy)
 
-static void init_date_time_widget();
+void init_date_time_widget();
 static void refresh_ui_timer();
 static void * timer_refresh_datetime(void * arg);
+extern bool is_gif_status(lv_obj_t * gif);
 
 void init_date_time(lv_obj_t * root)
 {
@@ -56,6 +57,10 @@ static void init_date_time_widget()
 static void * timer_refresh_datetime(void * arg)
 {
     while(true) {
+        if(!is_gif_status(gif_boy_lv)) {
+            my_sleep(100);
+            continue;
+        }
         get_current_datetime(&datetime);
         lv_async_call(refresh_ui_timer, NULL);
         my_sleep(500);

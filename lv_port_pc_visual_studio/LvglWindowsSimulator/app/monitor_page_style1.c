@@ -4,7 +4,7 @@
 #include "monitor/memory_monitor.h"
 #include "monitor/net_monitor.h"
 
-lv_obj_t * tv;
+static lv_obj_t * tv;
 static lv_obj_t * container;              // 页面根
 static lv_obj_t * label_net_up;           // 网络-上行
 static lv_obj_t * label_net_dn;           // 网络-下行
@@ -46,8 +46,23 @@ extern void init_date_time(lv_obj_t * root);
 static void update_arc_val(lv_obj_t * arc, int32_t val);
 static void tv_replace_event_cb(lv_event_t * e);
 
+/**
+ * @brief 返回GIF播放状态，true正在运行，false暂停
+ * @param gif
+ * @return
+ */
+bool is_gif_status(lv_obj_t * gif)
+{
+    lv_gif_t * gifobj = (lv_gif_t *)gif;
+    return lv_timer_get_paused(gifobj->timer);
+}
+
 static void refresh_ui_monitor()
 {
+    static char buf[30];
+    static char buf2[30];
+    memset(buf, 0, sizeof(buf));
+    memset(buf2, 0, sizeof(buf2));
     lv_label_set_text(label_cpu_name, cpu.model_name);
     lv_label_set_text_fmt(label_cpu_core, "Core:%" LV_PRId32, cpu.core_num);
     lv_label_set_text(label_disk_mount, SYS_MONITOR_DISK_NAME);
@@ -58,10 +73,7 @@ static void refresh_ui_monitor()
     lv_bar_set_value(bar_cpu_temp, cpu.temp, LV_ANIM_ON);
     update_arc_val(arc_cpu, (int32_t)cpu.usage);
     update_arc_val(arc_mem, (int32_t)mem.memory_use_percent);
-    static char buf[30];
-    static char buf2[30];
-    memset(buf, 0, sizeof(buf));
-    memset(buf2, 0, sizeof(buf2));
+
     format_sys_mem_str(mem.memory_use_count, buf);
     format_sys_mem_str(mem.memory_size, buf2);
     lv_label_set_text_fmt(label_mem_desc, "%s/%s", buf, buf2);
@@ -76,6 +88,10 @@ static void refresh_ui_monitor()
 void * timer_refresh_system_monitor(void * arg)
 {
     while(true) {
+        if(!is_gif_status(gif_cat_lv) && arg == NULL) {
+            my_sleep(100);
+            continue;
+        }
         static bool init_frist = false;
         if(!init_frist) {
             strcpy(net.net_name, SYS_NET_NAME);
