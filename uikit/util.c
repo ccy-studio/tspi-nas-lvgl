@@ -68,8 +68,6 @@ void get_current_datetime(datetime_t * current_time)
         case 6: current_time->week_str = "星期六"; break;
         default: current_time->week_str = "--";
     }
-    free(time_info);
-    time_info = NULL;
 }
 
 void my_sleep(unsigned int milliseconds)
