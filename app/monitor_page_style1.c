@@ -42,6 +42,7 @@ LV_IMG_DECLARE(img_net_dn)
 LV_IMG_DECLARE(img_net_up)
 LV_IMG_DECLARE(img_zd)
 LV_IMG_DECLARE(gif_cat)
+extern monitor_params_t monitor_dat;
 
 extern void init_date_time(lv_obj_t* root);
 
@@ -55,7 +56,7 @@ static void refresh_ui_monitor() {
     memset(buf2, 0, sizeof(buf2));
     lv_label_set_text(label_cpu_name, cpu.model_name);
     lv_label_set_text_fmt(label_cpu_core, "Core:%" LV_PRId32, cpu.core_num);
-    lv_label_set_text(label_disk_mount, SYS_MONITOR_DISK_NAME);
+    lv_label_set_text(label_disk_mount, monitor_dat.disk_name);
     lv_label_set_text_fmt(label_disk_space_use, "使用: %s 剩余:%s", disk.used,
                           disk.avail);
     lv_label_set_text_fmt(label_disk_space_total, "总量: %s", disk.size);
@@ -84,11 +85,11 @@ void* timer_refresh_system_monitor(void* arg) {
         }
         static bool init_frist = false;
         if (!init_frist) {
-            strcpy(net.net_name, SYS_NET_NAME);
+            strcpy(net.net_name, monitor_dat.net_name);
             init_frist = true;
             get_sys_cpu(&cpu);
         }
-        get_sys_disk_usage(&disk, SYS_MONITOR_DISK_NAME);
+        get_sys_disk_usage(&disk, monitor_dat.disk_name);
         get_sys_memory_usage(&mem);
         get_sys_current_net_speed(&net);
         get_sys_cpu_temp(&cpu);

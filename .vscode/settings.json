@@ -8,6 +8,8 @@
 		"stdlib.h": "c",
 		"application.h": "c",
 		"functional": "c",
-		"ui.h": "c"
+		"ui.h": "c",
+		"pthread.h": "c",
+		"string.h": "c"
 	}
 }

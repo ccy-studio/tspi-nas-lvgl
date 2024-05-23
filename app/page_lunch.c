@@ -21,7 +21,7 @@ static void on_page_create(ui_data_t * ui_dat, void * params)
     container = lv_image_create(lv_screen_active());
     lv_img_set_src(container, &img_start_lunch);
 
-    lv_timer_t * timer = lv_timer_create(timer_cb, 1000, NULL);
+    lv_timer_t * timer = lv_timer_create(timer_cb, 3000, NULL);
     lv_timer_set_repeat_count(timer, 1);
 }
 

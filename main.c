@@ -13,46 +13,39 @@
 // #include "lvgl/demos/lv_demos.h"
 #include "lvgl/lvgl.h"
 
+extern monitor_params_t monitor_dat;
+
+int extractData(int argc, char* argv[], char* buf, const char* key) {
+    // 遍历命令行参数，查找指定前缀的数据
+    for (int i = 1; i < argc; i++) {
+        if (strncmp(argv[i], key, strlen(key)) == 0) {
+            // 找到指定前缀的数据，将数据填充到buf中
+            if (i + 1 < argc) {
+                strcpy(buf, argv[i + 1]);
+                return 0;  // 返回0表示找到数据
+            } else {
+                return -2;  // 参数不足，返回-2
+            }
+        }
+    }
+    return -1;  // 返回-1表示未找到数据
+}
+
 int main(int argc, char** argv) {
-    char* flag_fb = NULL;
-    char* flag_ev = NULL;
+    char flag_fb[2] = "0";
+    char flag_ev[2] = "1";
 
-    // 遍历所有的命令行参数
-    for (int i = 1; i < argc; ++i) {
-        // 检查当前参数是否是标志 "-fb"
-        if (strcmp(argv[i], "-fb") == 0) {
-            // 检查下一个参数是否存在，并且它不是另一个标志
-            if (i + 1 < argc && argv[i + 1][0] != '-') {
-                flag_fb = argv[i + 1];
-                // 跳过下一个参数，因为它是已处理的值
-                ++i;
-            } else {
-                printf("-fb is missing a value\n");
-            }
-        }
-        // 类似地处理 "-ev"
-        else if (strcmp(argv[i], "-ev") == 0) {
-            if (i + 1 < argc && argv[i + 1][0] != '-') {
-                flag_ev = argv[i + 1];
-                ++i;
-            } else {
-                printf("-ev is missing a value\n");
-            }
-        }
-        // 处理其他标志...
-        else {
-            printf("Unknown flag: %s\n", argv[i]);
-        }
-    }
-
-    // 输出处理后的标志及其值
-    if (flag_fb == NULL) {
-        printf("Place Input fb num: exmple: 0\n");
-        return -1;
-    }
-    if (flag_ev == NULL) {
-        printf("Place Input evdev num: exmple: 1\n");
-        return -1;
+    extractData(argc, argv, flag_fb, "-fb");
+    extractData(argc, argv, flag_ev, "-evdev");
+    extractData(argc, argv, monitor_dat.disk_name, "-disk");
+    extractData(argc, argv, monitor_dat.net_name, "-net");
+    if(extractData(argc, argv, NULL, "-h") == -2){
+        printf("\tNAS MONITOR Helper\n \
+        INPUT:-fb DESC: Display Output; Example: -fb 0\n \
+        INPUT:-evdev DESC: Touch the input subsystem used; Example:-evdev 1\n \
+        INPUT:-disk DESC: The hard drive to be monitored; Example: -disk /dev/sda1\n \
+        INPUT:-net DESC: The name of the NIC to which you want to monitor the network speed; Example: -net eth0\n");
+        return 0;
     }
 
     char fb[41] = "/dev/fb";
